@@ -1,0 +1,153 @@
+#:import Factory kivy.factory.Factory
+<Modal@Popup>
+    id: modalOpen
+    auto_dismiss: True 
+    title: "Message"
+    color: (251/255, 192/255, 45/255, 1)
+    size_hint: (0.4, 0.25)
+    background: 'kivyDesign/modalbg.jpg'
+    GridLayout: 
+        cols:1
+        size: root.width, root.height
+        Label:
+            text: "Login Success"
+            font_size: 16
+            color: (251/255, 192/255, 45/255, 1)
+        Button:
+            text: "Exit"
+            color: (1,1,1,1)
+            background_normal: ''
+            background_color: (249/255, 168/255, 37/255, 1)
+            on_release: root.dismiss()
+            
+
+<ModalErr@Popup>
+    id: modalOpen
+    auto_dismiss: True 
+    title: "Message"
+    size_hint: (0.6, 0.25)
+    background: 'kivyDesign/modalbg.jpg'
+    GridLayout: 
+        cols:1
+        size: root.width, root.height
+        Label:
+            text: "Username and Password did not match"
+            color: (251/255, 192/255, 45/255, 1)
+        Button:
+            text: "Exit"
+            font_size: 16
+            color: (1,1,1,1)
+            background_normal: ''
+            background_color: (249/255, 168/255, 37/255, 1)
+            on_release: 
+                app.root.clearFields()
+                root.dismiss()
+
+
+<TextInput>
+    text_size: self.size
+    halign: "center"
+    font_size: 22
+
+
+<MainLayout>
+    BoxLayout:
+
+		orientation: "vertical"
+		size: root.width, root.height
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: "kivyDesign/bgmain2.jpg"
+            
+        padding: 60
+		spacing: 70
+        
+        BoxLayout:
+            orientation: "vertical"
+            padding: 20
+		    spacing: 10
+            background_normal: '' 
+            background_color: (1,1,1,0.75) 
+            canvas.before:
+                Color:
+                    rgba: self.background_color
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [25,]    
+            Label:
+                text: "Test"
+                bold: True
+                font_size: 60
+                underline: True
+                color: (251/255, 192/255, 45/255, 1)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.9}
+
+            TextInput:
+                id: username
+                hint_text: "Username"
+                multiline: False
+                size_hint: .8, 0.25  
+                #size_hint: .8, 0.055 
+                pos_hint: {'center_x': 0.5}
+            
+            TextInput:
+                id: password
+                hint_text: "Password"
+                password: True
+                multiline: False
+                size_hint: .8, 0.25  
+                pos_hint: {'center_x': 0.5}
+            Button:
+                text: "Submit"
+                font_size: 24
+                pos_hint: {'center_x': 0.5}
+                size_hint: .8, 0.25  
+                on_release: Factory.Modal().open() if root.pressMe() else Factory.ModalErr().open()
+                background_color: (0,0,0,0)
+                background_normal: ''
+                canvas.before:
+                    Color:
+                        rgba: (249/255, 168/255, 37/255, 1)
+                    RoundedRectangle:
+                        size : self.size
+                        pos : self.pos
+                        radius : [8]  
+            Label:
+                text: "Forgot password?"
+                color: (249/255, 168/255, 37/255, 1)
+                font_size: 18
+                size_hint: .8, 0.25
+                text_size: self.size
+                valign: "top"
+                halign: "center"  
+                pos_hint: {'center_x': 0.5}
+            GridLayout:
+                cols: 2
+                Label:
+                    text: "Don't have an account?"
+                    text_size: self.size
+                    halign: "left"
+                    valign: "bottom"
+                    color: "#546e7a"
+                    font_size: 18
+                AnchorLayout:
+                    anchor_x: "right"
+                    anchor_y: "bottom"
+                    Button:
+                        text: "Register"
+                        font_size: 16
+                        size_hint: (0.9,0.25)
+                        background_normal: ''
+                        background_color: (1,0,0,0)
+                        canvas.before:
+                            Color:
+                                rgba: (77/255, 208/255, 225/255, 1)
+                            RoundedRectangle:
+                                size : self.size
+                                pos : self.pos
+                                radius : [15]      
+                
+                    
