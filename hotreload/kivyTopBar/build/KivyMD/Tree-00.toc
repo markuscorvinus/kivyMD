@@ -1,6 +1,6 @@
 ('d:\\dir\\python\\codemy\\kivymd-sandberg\\kivy_venv\\lib\\site-packages\\kivymd-1.1.0-py3.10.egg',
  None,
- {'*.pyc', '*.cp310-win_amd64.pyd', 'EGG-INFO', '*.pyd', '*.pyw', '*.py'},
+ {'*.pyd', '*.cp310-win_amd64.pyd', 'EGG-INFO', '*.pyw', '*.py', '*.pyc'},
  'DATA',
  [('kivymd\\uix\\tooltip\\tooltip.kv',
    'd:\\dir\\python\\codemy\\kivymd-sandberg\\kivy_venv\\lib\\site-packages\\kivymd-1.1.0-py3.10.egg\\kivymd\\uix\\tooltip\\tooltip.kv',

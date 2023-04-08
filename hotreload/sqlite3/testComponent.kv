@@ -1,0 +1,124 @@
+#######################################
+###    Default Widget Properties    ###
+#######################################
+<MDTextField>
+    font_size: '25sp'
+    #hint_font_size: '100sp'
+    #helper_font_size: '100sp'
+    mode: 'round'
+    fill_color_normal: "white"
+    fill_color_focus: "white"
+    line_color_normal: app.theme_cls.primary_color
+    text_color_normal: app.theme_cls.primary_color
+    helper_text_color_normal: app.theme_cls.primary_color 
+    hint_text_color_normal: app.theme_cls.primary_color
+    hint_text_color_focus: app.theme_cls.primary_color if app.theme_cls.theme_style == "Dark" else "black"
+    text_color_focus: app.theme_cls.primary_color if app.theme_cls.theme_style == "Dark" else "black"
+
+
+
+            
+            
+#######################################
+
+<MainLayout>:
+    screen_manager: screen_manager1
+    ScreenManager:
+        id: screen_manager1
+        home: login_screen
+        Screen:
+            id: login_screen
+            name: "login_screen"
+
+            BoxLayout:
+                orientation: "vertical"
+                size: root.width, root.height
+                canvas.before:
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                        source: "kivyDesign/bgmain2.jpg"
+                    
+                padding: 60
+                spacing: 70
+                
+                FloatLayout:
+                    background_normal: '' 
+                    background_color: (1,1,1,0.75) 
+                    canvas.before:
+                        Color:
+                            rgba: self.background_color
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [25,]    
+                    Label:
+                        text: "S I G N I N"
+                        bold: True
+                        font_size: '50sp'
+                        underline: True
+                        size_hint: None,None
+                        color: (251/255, 192/255, 45/255, 1)
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.85}
+
+                    MDTextField:
+                        id: username
+                        hint_text: "Username"
+                        #validator: 'email'
+                        font_size: "25sp"
+                        size_hint: None,None
+                        size: dp(395), dp(45)  
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.65}
+                    
+                    CustomPasswordField:
+                        id: password
+                        hint_text: "Password"
+                        password: True
+                        font_size: "25sp"
+                        size_hint: None,None
+                        size: dp(395), dp(45)  
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.55}
+
+                    MDFillRoundFlatButton:
+                        text: '{:^55}'.format('Login')  #pad blank spaces left and right
+                        font_size: "25sp"
+                        size_hint: None,None
+                        size: dp(395), dp(45)  
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.46}
+                        on_release: Factory.Modal().open() if root.pressMe() else Factory.ModalErr().open()
+                    
+                    Label:
+                        text: "Forgot password?"
+                        color: (249/255, 168/255, 37/255, 1)
+                        font_size: '18sp'
+                        size_hint: None,None
+                        size: dp(255), dp(45)  
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.40}
+                        text_size: self.size
+                        valign: "top"
+                        halign: "center"  
+
+                    Label:
+                        text: "Don't have an account?"
+                        text_size: self.size
+                        halign: "left"
+                        valign: "bottom"
+                        color: "#546e7a"
+                        font_size: '16sp'
+                        size_hint: None,None
+                        size: dp(350), dp(40)  
+                        pos_hint: {'x': 0.065, 'center_y': 0.06}
+                    MDFillRoundFlatButton:
+                        text: '{:^30}'.format('Register')  #pad blank spaces left and right
+                        font_size: "18sp"
+                        size_hint: None,None
+                        md_bg_color: "orange"
+                        size: dp(150), dp(40)  
+                        pos_hint: {'center_x': 0.75, 'center_y': 0.06}
+                        on_release: 
+                            screen_manager1.current = "reg_screen"
+                            screen_manager1.transition.direction = "left"
+
+                    
+        
+        

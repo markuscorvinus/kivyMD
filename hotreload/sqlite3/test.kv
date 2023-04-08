@@ -1,0 +1,61 @@
+<MainLayout>:
+    screen_mngr: screen_mngr1
+    ScreenManager:
+        id: screen_mngr1
+        login_screen: home
+        reg_screen: screen2
+        
+        Screen:
+            id:home
+            name: 'login'
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: "130dp"
+                spacing: "20dp"
+                MDLabel:
+                    text: "Login Screen"
+                    halign: "center"
+                MDTextField:
+                    hint_text: "username"
+                MDTextField:
+                    hint_text: "password"
+                    password: True
+                MDRoundFlatButton:
+                    text:"Sign In"
+                    size_hint: 0.4, 0.1
+                    pos_hint: {"center_x": 0.5, "y": 0.5}
+                    on_press: screen_mngr1.current = "screen2"
+                MDRoundFlatButton:
+                    text:"Register Here"
+                    size_hint: 0.4, 0.1
+                    pos_hint: {"center_x": 0.5, "y": 0.5}
+                    on_press: screen_mngr1.current = "screen2"
+        Screen:
+            id:screen2
+            name: 'screen2'
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: "130dp"
+                spacing: "20dp"
+                MDLabel:
+                    text: "Registration Screen"
+                    halign: "center"
+                MDTextField:
+                    hint_text: "username"
+                MDTextField:
+                    hint_text: "First Name"
+                MDTextField:
+                    hint_text: "Last Name"
+                MDTextField:
+                    hint_text: "Email"
+                    validator: 'email'
+                    helper_text: 'email format required'
+                    helper_text_mode: 'on_error'
+                MDTextField:
+                    hint_text: "password"
+                    password: True
+                MDRoundFlatButton:
+                    text:"Sign Up"
+                    size_hint: 0.4, 0.1
+                    pos_hint: {"center_x": 0.5, "y": 0.5}
+                    on_press: screen_mngr1.current = "login"

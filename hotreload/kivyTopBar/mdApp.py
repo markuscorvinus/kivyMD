@@ -1,9 +1,9 @@
 import os, sys
 from kivy.lang import Builder
 from kivy.config import Config
-Config.set('graphics', 'width', '730')
-Config.set('graphics', 'height', '980')
-Config.set('graphics','resizable',0)
+#Config.set('graphics', 'width', '730')
+#Config.set('graphics', 'height', '980')
+#Config.set('graphics','resizable',0)
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout

@@ -1,0 +1,147 @@
+<MainLayout>:
+    screen_mngr: screen_mngr1
+    ScreenManager:
+        id: screen_mngr1
+        login_screen: login_screen
+        reg_screen: registration_screen
+        dash_screen: dashboard_screen
+        
+        Screen:
+            id:login_screen
+            name: 'login_screen'
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: "130dp"
+                spacing: "20dp"
+                MDLabel:
+                    text: "Login Screen"
+                    halign: "center"
+                MDTextField:
+                    hint_text: "username"
+                MDTextField:
+                    hint_text: "password"
+                    password: True
+                MDRoundFlatButton:
+                    text:"Sign In"
+                    size_hint: 0.4, 0.1
+                    pos_hint: {"center_x": 0.5, "y": 0.5}
+                    on_press: 
+                        screen_mngr1.current = "dashboard_screen"
+                        screen_mngr1.transition.direction = "up"
+                        
+                MDRoundFlatButton:
+                    text:"Register Here"
+                    size_hint: 0.4, 0.1
+                    pos_hint: {"center_x": 0.5, "y": 0.5}
+                    on_press:
+                        screen_mngr1.current = "reg_screen"                        
+                        screen_mngr1.transition.direction = "left"
+        Screen:
+            id:registration_screen
+            name: 'reg_screen'
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: "130dp"
+                spacing: "20dp"
+                MDLabel:
+                    text: "Registration Screen"
+                    halign: "center"
+                MDTextField:
+                    hint_text: "username"
+                MDTextField:
+                    hint_text: "First Name"
+                MDTextField:
+                    hint_text: "Last Name"
+                MDTextField:
+                    hint_text: "Email"
+                    validator: 'email'
+                    helper_text: 'email format required'
+                    helper_text_mode: 'on_error'
+                MDTextField:
+                    hint_text: "password"
+                    password: True
+                MDRoundFlatButton:
+                    text:"Sign Up"
+                    size_hint: 0.4, 0.1
+                    pos_hint: {"center_x": 0.5, "y": 0.5}
+                    on_press: 
+                        screen_mngr1.current = "login_screen"
+                        screen_mngr1.transition.direction = "right"
+        Screen:
+            id:dashboard_screen
+            name: 'dashboard_screen'
+            MDBoxLayout:
+                orientation: "vertical"
+                size: root.size
+                MDTopAppBar:
+                    title: "Navigation Bar"
+                    left_action_items: [["menu"]]
+                    right_action_items: [["dots-vertical"],["theme-light-dark"]]
+                
+                MDBottomNavigation:
+                    panel_color: app.theme_cls.primary_color
+                    selected_color_background: None
+                    text_color_active: app.theme_cls.primary_dark
+                    text_color_normal: 1,1,1,1
+                    use_text: False
+                    transition_duration: 0.9 #animate a fade in screen switch
+
+                    MDBottomNavigationItem:
+                        name: 'screen 1'
+                        icon: 'home-outline'
+                        #badge_icon: "numeric-10"
+                        
+                        MDLabel:
+                            text: 'Welcome to KivyMD- SECTION 1'
+                            halign: 'center'
+                            font_size: '55sp'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+
+                    MDBottomNavigationItem:
+                        name: 'screen 2'
+                        icon: 'magnify'
+                        #badge_icon: "numeric-10"
+                        
+                        MDLabel:
+                            text: 'Welcome to KivyMD- SECTION 2'
+                            halign: 'center'
+                            font_size: '55sp'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+
+                    MDBottomNavigationItem:
+                        name: 'screen 3'
+                        icon: 'plus'
+                        #badge_icon: "numeric-10"
+                        
+                        MDLabel:
+                            text: 'Welcome to KivyMD- SECTION 3'
+                            halign: 'center'
+                            font_size: '55sp'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+
+                    MDBottomNavigationItem:
+                        name: 'screen 4'
+                        icon: 'message-processing-outline'
+                        #badge_icon: "numeric-10"
+                        
+                        MDLabel:
+                            text: 'Welcome to KivyMD- SECTION 4'
+                            halign: 'center'
+                            font_size: '55sp'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+
+                    MDBottomNavigationItem:
+                        name: 'screen 5'
+                        icon: 'bell-outline'
+                        #badge_icon: "numeric-10"
+                        
+                        MDLabel:
+                            text: 'Welcome to KivyMD- SECTION 5'
+                            halign: 'center'
+                            font_size: '55sp'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
