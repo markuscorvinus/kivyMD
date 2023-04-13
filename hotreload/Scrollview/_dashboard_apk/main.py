@@ -10,6 +10,7 @@ from kivymd.uix.snackbar import Snackbar
 from kivy.metrics import dp
 from kivy.core.window import Window
 from kivymd.uix.snackbar import BaseSnackbar
+from kivy.lang import Builder
 
 #Builder.load_file('test.kv')
 #Define our different screens
@@ -51,8 +52,9 @@ class MainLayout(FloatLayout):
 
 
 
-class DashboardApp(MDApp):
+class MainApp(MDApp):
     def build(self):
+            Builder.load_file('dashboard.kv')
             self.theme_cls.material_style = "M3"    
             self.theme_cls.theme_style = "Dark"
             self.theme_cls.primary_palette= "Blue"
@@ -63,4 +65,4 @@ class DashboardApp(MDApp):
 if __name__ == '__main__':
     if hasattr(sys, '_MEIPASS'):
         resource_add_path(os.path.join(sys._MEIPASS))
-    DashboardApp().run()
+    MainApp().run()

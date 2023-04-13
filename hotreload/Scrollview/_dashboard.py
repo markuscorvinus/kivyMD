@@ -12,6 +12,7 @@ from kivymd.uix.snackbar import Snackbar
 from kivy.metrics import dp
 from kivy.core.window import Window
 from kivymd.uix.snackbar import BaseSnackbar
+from kivy.lang import Builder
 
 #Builder.load_file('test.kv')
 #Define our different screens
