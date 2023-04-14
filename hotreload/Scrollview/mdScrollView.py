@@ -1,5 +1,5 @@
 import os, sys
-import datetime     #FOR date saving of current date
+from datetime import datetime, timedelta #FOR date saving of current date
 import base64       #FOR password encoding
 import sqlite3      #FOR sqlite3 connection
 
@@ -21,8 +21,9 @@ from kivy.resources import resource_add_path, resource_find
 from kivymd.uix.dialog import MDDialog
 from kivy.storage.jsonstore import JsonStore
 from kivymd.uix.snackbar import Snackbar
-from kivymd.uix.list import TwoLineListItem
-
+from kivymd.uix.list import ThreeLineListItem
+from kivymd.uix.card import MDCardSwipe
+from kivymd.toast import toast
 
 #Builder.load_file('./mdAppComponents.kv')    
 class MainLayout(BoxLayout):
@@ -64,8 +65,6 @@ class MainLayout(BoxLayout):
             self.screen_manager.transition.direction = "up" 
         else:
             self.display_dialog("Username & password not found")
-    
-    
         
     def register_account(self,app):
         """
@@ -79,8 +78,6 @@ class MainLayout(BoxLayout):
                 self.display_dialog("", True)
             else:
                 self.display_dialog("Error inserting records")
-           
-            
             
     def display_dialog(self, text_msg,is_success=False):
         """
@@ -122,8 +119,6 @@ class MainLayout(BoxLayout):
                 )
             self.dialogbox.open()  
     
-    
-    
     def add_user(self):
         """
             Insert new user information to database
@@ -150,8 +145,6 @@ class MainLayout(BoxLayout):
             self.dbconn.commit()
             self.dbconn.close()
             return True    
-    
-    
     
     def check_user(self,input_username,input_password):
         """
@@ -181,7 +174,6 @@ class MainLayout(BoxLayout):
             self.dbconn.commit()
             self.dbconn.close()
             return True
-        
     
     def dismiss_dialog(self,*args):
         """
@@ -190,8 +182,6 @@ class MainLayout(BoxLayout):
         
         if self.dialogbox: #requires to have an existing dialogbox open
             self.dialogbox.dismiss()
-    
-    
     
     def reg_success_ok_button(self,*args):
         """
@@ -204,8 +194,6 @@ class MainLayout(BoxLayout):
             self.dismiss_dialog()
             self.screen_manager.current = "login_screen" 
             self.screen_manager.transition.direction = "right"     
-        
-    
            
     def input_validate(self):
         """
@@ -234,8 +222,6 @@ class MainLayout(BoxLayout):
         else:
             return True   
             
-    
-            
     def password_encode(self,password_string):
         """
         Encode password into b64 encryption for database storage.
@@ -247,8 +233,6 @@ class MainLayout(BoxLayout):
         ascii_pass  = password_string.encode("ascii")
         b64_pass    = base64.b64encode(ascii_pass)
         return b64_pass.decode("ascii")
-    
-    
     
     def password_decode(self,password_string):
         """
@@ -262,8 +246,6 @@ class MainLayout(BoxLayout):
         b64_pass    = base64.b64decode(ascii_pass)
         return b64_pass.decode("ascii")
     
-    
-    
     def clear_registration(self):
         """
         Clear input fields in registration screen.
@@ -274,13 +256,9 @@ class MainLayout(BoxLayout):
         self.ids.email.text     = ''
         self.ids.password.pass_text.text = ''
         self.ids.checkBox.active = False
-
-    
     
     def image_click(self):
         print('click image')    
-
-    
     
     def return_to_dashboard(self):
         """
@@ -289,36 +267,54 @@ class MainLayout(BoxLayout):
         self.bottom_navigation.switch_tab('screen 1') #automatically switch
         self.screen_manager.current = 'dashboard_screen'
         self.screen_manager.transition.direction = "right"
-    
-    
         
-    def load_posts(self):
+    def load_posts(self,widget_type = None):
         """
-        Load all Posts record created by the logged-in user.
+        Load all Posts record created by the logged-in user. Receives widget_type that is either null 
+        or default to "swipe" for swipe cards
         """
         self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         dbcursor = self.dbconn.cursor()
         
-        user_code = self.store.get('UserInfo')['code']
-        sql_query = """SELECT * FROM trnpost WHERE user_mst_code = :var_user_code """
-        parameter = {'var_user_code': user_code}
-        dbcursor.execute(sql_query,parameter)
         
+        if widget_type == "swipe":
+            user_code = self.store.get('UserInfo')['code'] 
+            sql_query = """SELECT * FROM trnpost WHERE user_mst_code = :var_user_code ORDER BY trnpost.created_at DESC """
+            parameter = {'var_user_code': user_code}
+            dbcursor.execute(sql_query,parameter)
+         
+        else:
+            sql_query = """SELECT * FROM trnpost  ORDER BY trnpost.created_at DESC """
+            dbcursor.execute(sql_query)
+            
         records = dbcursor.fetchall()
         if not records: #if no record exist
             print("No record created")
         else:
             self.ids.screen4_boxlayout.clear_widgets()
+            self.ids.screen5_boxlayout.clear_widgets()
             for post in records:
-                self.ids.screen4_boxlayout.add_widget(
-                    TwoLineListItem(text=post[2],
-                                    secondary_text=post[3],
-                ))
+                if widget_type == "swipe":
+                    #Display a Swipe to delete List with rec_id(primary of post record),Post title, user and date posted, and post content
+                    self.ids.screen5_boxlayout.add_widget(SwipeToDeleteItem(rec_id=post[0],
+                                                                    text=post[2],
+                                                                    secondary_text=f'[size=12sp]posted by: {post[5]} · {self.datetime_difference(post[7])}[/size]', 
+                                                                    tertiary_text=post[3],
+                                                                    on_touch_down=self.view_post))
+                elif widget_type is None:
+                    #Display a 3 line list item: Post title, user and date posted, and post content
+                    self.ids.screen4_boxlayout.add_widget(CustomThreeLineListItem(
+                                    rec_id=post[0],
+                                    text=f'[size=18sp][b]{post[2]}[/b][/size]',
+                                    secondary_text=f'[size=12sp]posted by: {post[5]} · {self.datetime_difference(post[7])}[/size]',                                        
+                                    tertiary_text=post[3],
+                                    on_touch_down=self.view_post
+                                    ))
+    
                 
             
-            self.dbconn.commit()
-            self.dbconn.close()
-            
+        self.dbconn.commit()
+        self.dbconn.close()
         
     def post_record(self,app):
         """
@@ -368,9 +364,6 @@ class MainLayout(BoxLayout):
         else:
             self.display_dialog(post_status["remarks"]) #display the remarks message in post_validate() status return
     
-    
-    
-    
     def post_validate(self,title,body):
         """
         Validate user input in post screen. Return a python dictionary
@@ -390,8 +383,38 @@ class MainLayout(BoxLayout):
 
         status["success"] = True
         return status
+      
+    def datetime_difference(self,from_date):
+        """
+        Returns the number of date or time passed since the date of posting
+            Returns:
+                difference (str): difference of date posted vs today in minutes/hours/days or months
+        """
+        #Removes the stored decimal in created_at field
+        decimal_index = from_date.find('.')
+        if decimal_index != -1:
+            from_date = from_date[:decimal_index]
         
-         
+        now = datetime.now()
+        try:
+            record_date = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
+        except:
+            print(f'error from date {from_date}')
+            
+        diff = now - record_date
+        if diff < timedelta(minutes=60):
+            return f"{int(diff.seconds / 60)}m"
+        elif diff < timedelta(days=1):
+            return f"{int(diff.seconds / 3600)}h"
+        elif diff < timedelta(days=30):
+            return f"{diff.days}d"
+        else:
+            return f"{int(diff.days / 30)}mo"
+    
+    def view_post(self,instance,touch):
+        if instance.collide_point(*touch.pos):
+            print(f"Item {instance.rec_id} pressed")
+            
 class CustomPasswordField(MDRelativeLayout):
     text      = StringProperty()
     hint_text = StringProperty()
@@ -405,7 +428,53 @@ class CustomPasswordRegField(MDRelativeLayout):
 class RegDialogContent(MDBoxLayout):
     pass      
 
+class CustomThreeLineListItem(ThreeLineListItem):
+    rec_id = NumericProperty()
+    text = StringProperty()
+    secondary_text = StringProperty()
+    tertiary_text=StringProperty()
+    
+class SwipeToDeleteItem(MDCardSwipe):
+    rec_id = NumericProperty()
+    text = StringProperty()
+    secondary_text = StringProperty()
+    tertiary_text=StringProperty()
+    
+    dbconn    = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.store = JsonStore("loggedUser.json")
+        
+    def remove_item(self,record_id):
+        """
+        Remove SwipeToDeleteItem in screen
+        """
+        widgetToRemove = list(filter(lambda child: child.rec_id == record_id, self.parent.children))
+        for child_widget in widgetToRemove:
+            self.delete_record(record_id)
+            self.parent.remove_widget(child_widget)
+            
+    def delete_record(self,record_id):
+        """
+        Remove the actual record in the database
+        """
+        self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        dbcursor = self.dbconn.cursor()
+        
+        sql_query = """DELETE FROM trnpost WHERE code = :rec_id AND user_mst_code = :var_user_code """
+        parameter = {'rec_id': record_id,'var_user_code': self.store.get('UserInfo')['code']}
+        dbcursor.execute(sql_query,parameter)
+        #check if NO RECORD is created, return False(ERROR)
+        if(dbcursor.rowcount == 1):
+            toast("Post has been deleted")
+        else:
+            toast("Post does not exist. Please reload the screen")
+            #print("Commit " + dbcursor.rowcount 
+        self.dbconn.commit()
+        self.dbconn.close()
+        
 class mdScrollViewApp(MDApp):
+
     def build(self):
             self.theme_cls.material_style = "M3"    
             self.theme_cls.theme_style    = "Light"

@@ -57,6 +57,7 @@ class Example(MDApp):
         return self.screen
 
     def remove_item(self, instance):
+        print(instance)
         self.screen.ids.md_list.remove_widget(instance)
 
     def on_start(self):
