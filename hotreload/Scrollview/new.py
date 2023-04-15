@@ -5,7 +5,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivy.storage.jsonstore import JsonStore
 from kivymd.uix.pickers import MDDatePicker
-
+import datetime
 helpstr = '''
 ScreenManager:
     WelcomeScreen:
@@ -150,7 +150,15 @@ class NewApp(MDApp):
         self.dialog.dismiss()
 
     def show_date_picker(self):
-        date_dialog = MDDatePicker(year = 1999,month = 1,day =1,)
+        #date_dialog = MDDatePicker(min_year=2023, min_month)
+        date_dialog = MDDatePicker(
+            min_date=datetime.date.today(),
+            max_date=datetime.date(
+                datetime.date.today().year,
+                datetime.date.today().month,
+                datetime.date.today().day + 2,
+            ),
+        )
         date_dialog.bind(on_save=self.get_date)
         date_dialog.open()
     def get_date(self,instance,value,date_range):

@@ -1,29 +1,33 @@
 import os, sys
 from datetime import datetime, timedelta #FOR date saving of current date
+
 import base64       #FOR password encoding
 import sqlite3      #FOR sqlite3 connection
 
-from kivy.lang import Builder
-from kivy.config import Config
+from kivymd.app           import MDApp
+from kivy.lang            import Builder
+from kivy.config          import Config
 Config.set('graphics', 'width', '600')   #change screen width
 Config.set('graphics', 'height', '800')  #change screen height
 
-from kivymd.app import MDApp
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivymd.uix.relativelayout import MDRelativeLayout
-from kivy.core.window import Window
-from kivymd.uix.button import MDRaisedButton,MDFillRoundFlatButton
-from kivymd.uix.screenmanager import MDScreenManager
-from kivy.metrics import dp
-from kivy.properties import StringProperty,NumericProperty,ObjectProperty
-from kivy.resources import resource_add_path, resource_find
-from kivymd.uix.dialog import MDDialog
+from kivy.uix.boxlayout   import BoxLayout
+from kivy.core.window     import Window
+from kivy.metrics         import dp
+from kivy.properties      import StringProperty,NumericProperty,ObjectProperty
+from kivy.resources       import resource_add_path, resource_find
+from kivy.uix.screenmanager import Screen
 from kivy.storage.jsonstore import JsonStore
-from kivymd.uix.snackbar import Snackbar
-from kivymd.uix.list import ThreeLineListItem
-from kivymd.uix.card import MDCardSwipe
-from kivymd.toast import toast
+
+from kivymd.uix.dialog         import MDDialog
+from kivymd.uix.boxlayout      import MDBoxLayout
+from kivymd.uix.button         import MDRaisedButton,MDFillRoundFlatButton
+from kivymd.uix.relativelayout import MDRelativeLayout
+from kivymd.uix.snackbar       import Snackbar
+from kivymd.uix.list           import ThreeLineListItem
+from kivymd.uix.card           import MDCardSwipe
+from kivymd.uix.pickers        import MDDatePicker
+from kivymd.uix.menu           import MDDropdownMenu
+from kivymd.toast              import toast
 
 #Builder.load_file('./mdAppComponents.kv')    
 class MainLayout(BoxLayout):
@@ -31,7 +35,9 @@ class MainLayout(BoxLayout):
     bottom_navigation =  ObjectProperty(None)
     dbconn    = None
     dialogbox = None
-    
+    active_tab = StringProperty() #current active tab name
+    menu        = None #Menu
+    date_dialog = None
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,38 +53,6 @@ class MainLayout(BoxLayout):
             self.screen_manager.current = 'login_screen'
     
     
-    
-    def login_account(self):
-        """
-        Validate username and password from user input. If the value of login_complete
-        is true, generate a Login Success dialogbox, otherwise, prompt that username and password 
-        not found.
-        """
-        
-        input_username = self.ids.log_username.text.strip()
-        input_password = self.ids.log_password.pass_text.text.strip()
-        
-        login_complete = self.check_user(input_username,input_password)
-        if login_complete: 
-            self.display_dialog("Login Success!")
-            self.screen_manager.current = "dashboard_screen" 
-            self.screen_manager.transition.direction = "up" 
-        else:
-            self.display_dialog("Username & password not found")
-        
-    def register_account(self,app):
-        """
-        Validate registration fields using input_validate function. If the value of reg_complete
-        is true, generate a Registration Success dialogbox, otherwise, prompt that an error message.
-        """
-        
-        if self.input_validate():
-            reg_complete = self.add_user() #insert record to database
-            if reg_complete: 
-                self.display_dialog("", True)
-            else:
-                self.display_dialog("Error inserting records")
-            
     def display_dialog(self, text_msg,is_success=False):
         """
         Use to generate dialog box with parameter-based text property. If is_success is true,
@@ -118,6 +92,308 @@ class MainLayout(BoxLayout):
                             on_press=self.dismiss_dialog)],
                 )
             self.dialogbox.open()  
+    
+    def dismiss_dialog(self,*args):
+        """
+        Function to close/dismiss the current dialogbox
+        """
+        
+        if self.dialogbox: #requires to have an existing dialogbox open
+            self.dialogbox.dismiss()
+    
+    def reg_success_ok_button(self,*args):
+        """
+        A dismiss_dialog() copy, specific to registration success dialog box.
+        Dismiss the dialog box and return to login screen after pressing the
+        'Return to Login' button
+        """
+        
+        if self.dialogbox: #requires to have an existing dialogbox open
+            self.dismiss_dialog()
+            self.screen_manager.current = "login_screen" 
+            self.screen_manager.transition.direction = "right"     
+    
+    def assign_active_tab(self,*args): 
+        """
+        Use to assign the current active tab of Bottom nav, for validation in touch event of
+        view_post method.
+            Arguments:
+                *args(tuple): consist of [0]button Nav object code, [1]button Nav item properties, [2]button Nav Item screen name
+        """
+        #print(*args)
+        self.active_tab = args[2]
+    
+    
+    
+    
+    ###################################################
+    #                                                 #      
+    #              VALIDATION METHODS                 #  
+    #                                                 #
+    ###################################################       
+    def input_validate(self):
+        """
+        Validate user input in registration screen. Returns True if all validations are passed.
+        
+            Returns:
+                True/False(bool): 
+        """
+        
+        #strip removes any extra spaces
+        username    = self.ids.username.text.strip()  
+        firstname   = self.ids.firstname.text.strip()  
+        lastname    = self.ids.lastname.text.strip()  
+        email       = self.ids.email.text.strip()  
+        password    = self.ids.password.pass_text.text.strip()
+        cbTerms     = self.ids.checkBox.active
+        
+        #check if any one of the fields is empty
+        if not username or not firstname or not lastname or not email or not password: 
+            self.display_dialog("Please fill up all required fields") 
+            return False    
+        #check if checkbox is not checked   
+        elif not cbTerms:
+            self.display_dialog("You must agree to terms and condition")
+            return False
+        else:
+            return True   
+    
+    def post_validate(self,title,body):
+        """
+        Validate user input in post screen. Return a python dictionary
+        with key value pair for post_record conditioning
+        
+            Returns:
+                status (dictionary): consist of success key and remarks key
+        """
+        status = {"success": False, "remarks": ""}
+        
+        if not title: 
+            status["remarks"] = "Title field is required" 
+            return status    
+        if not body: 
+            status["remarks"] = "Body field is required"
+            return status  
+
+        status["success"] = True
+        return status
+            
+    def password_encode(self,password_string):
+        """
+        Encode password into b64 encryption for database storage.
+        
+            Returns:
+                password(string): encoded password in b64encoding 
+        """
+        
+        ascii_pass  = password_string.encode("ascii")
+        b64_pass    = base64.b64encode(ascii_pass)
+        return b64_pass.decode("ascii")
+    
+    def password_decode(self,password_string):
+        """
+        Decode password into b64 decryption for password viewing(not in use in this app).
+        
+            Returns:
+                password(string): decoded password
+        """
+        
+        ascii_pass  = password_string.encode("ascii")
+        b64_pass    = base64.b64decode(ascii_pass)
+        return b64_pass.decode("ascii")
+    
+    def clear_registration(self):
+        """
+        Clear input fields in registration screen.
+        """
+        self.ids.username.text  = ''
+        self.ids.firstname.text = ''
+        self.ids.lastname.text  = ''
+        self.ids.email.text     = ''
+        self.ids.password.pass_text.text = ''
+        self.ids.checkBox.active = False
+    ###################################################
+    
+    
+    
+    
+    ###################################################
+    #                                                 #      
+    #              SCREEN BEHAVIOR METHODS            #  
+    #                                                 #
+    ################################################### 
+    def image_click(self):
+        print('click image')    
+    
+    def return_to_dashboard(self,screen_name):
+        """
+        Return function to dashboard
+            Arguments:
+                screen_name {str} -- screen name to switch when return to dashboard
+        """
+        self.bottom_navigation.switch_tab(screen_name) #automatically switch
+        self.screen_manager.current = 'dashboard_screen'
+        self.screen_manager.transition.direction = "right"
+    
+    def datetime_difference(self,from_date):
+        """
+        Returns the number of date or time passed since the date of posting
+            Returns:
+                difference (str): difference of date posted vs today in minutes/hours/days or months
+        """
+        #Removes the stored decimal in created_at field
+        decimal_index = from_date.find('.')
+        if decimal_index != -1:
+            from_date = from_date[:decimal_index]
+        
+        now = datetime.now()
+        try:
+            record_date = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
+        except:
+            print(f'error from date {from_date}')
+            
+        diff = now - record_date
+        if diff < timedelta(minutes=60):
+            return f"{int(diff.seconds / 60)}m"
+        elif diff < timedelta(days=1):
+            return f"{int(diff.seconds / 3600)}h"
+        elif diff < timedelta(days=30):
+            return f"{diff.days}d"
+        else:
+            return f"{int(diff.days / 30)}mo"
+    
+    def view_post(self,instance,touch):
+        """
+        Method called when pressing the post list. Use to open the viewpost_screen.
+        There is a validation where only 'screen 4' tab is allowed to respond to touch event.
+        MDList has no on_press/on_release event, so this function uses touch instead
+        
+            Arguments:
+                instance(object) -- default parameter of on_touch_down event from mdlist
+                touch(object) -- default parameter of on_touch_down event from mdlist
+        """
+        print(self.ids.bottom_nav.current)
+        if instance.collide_point(*touch.pos) and self.active_tab == 'screen 4':
+            #using instance param, you may determine the property associated to the selected MDList.
+            #In this example, using instance.rec_id will send the rec_id of the specific selected MDList
+            #that will be use to view the actual post.
+            self.screen_manager.get_screen("viewpost_screen").assign_post_id(instance.rec_id,'screen 4')
+            self.screen_manager.current = "viewpost_screen"
+            self.screen_manager.transition.direction = "up"
+            
+    def date_open(self):
+        """
+        Opens DatePicker widget
+        """
+        import datetime
+        minimum_date = datetime.date.today()
+        # date_dialog = MDDatePicker(
+        #     min_year=2024,
+        #     mode="picker",
+        # )
+        print("onfocus")
+        
+        if not self.date_dialog:
+            self.date_dialog = MDDatePicker(
+                mode="picker",
+                min_date=datetime.date.today(),
+                max_date=datetime.date(
+                    datetime.date.today().year,
+                    datetime.date.today().month,
+                    datetime.date.today().day + 2,
+                ),
+            )
+            self.date_dialog.bind(on_save=self.assign_date) #Does not work if you try to initialize on_save on MDDatePicker, so you bind it separately
+            self.date_dialog.open()  
+        else:
+            self.date_dialog.dismiss()  
+            self.date_dialog = None     
+            
+              
+    def get_default_date(self):
+        """
+        Get the current date and assign it to default_date MDTextInput
+        """
+        import datetime
+        date_today = datetime.date.today()
+        date_today = date_today.strftime('%m/%d/%Y')
+        self.ids.default_date.text=date_today 
+    
+    def assign_date(self, instance, value, date_range):
+        self.ids.default_date.text = value.strftime('%m/%d/%Y')
+        
+    def open_logout_menu(self,button_caller):
+        """
+        Opens the logout menu from dots-vertical icon in MDTopAppBar
+            Arguments:
+                button_caller(object): the "x" passed from root.open_logout_menu(x)
+        """
+        
+        #Creates Menu Items to show
+        menu_items = [{
+            "text": f"Logout",
+            "viewclass": "OneLineListItem",
+            "on_release": 
+                lambda x=f"Logout": self.logout(),
+        }]
+        
+        #Initialize the DropdownMenu using the menu_items as content, 
+        # and button_caller as position from which the menu will open.
+        self.menu = MDDropdownMenu(
+            caller=button_caller,  #
+            items=menu_items,
+            width_mult=4,
+        )
+        self.menu.open()
+        
+    def logout(self):
+        """
+        Actual logout method. Removes the content of LoggedUser.json and switches batch to login screen
+        """
+        self.menu.dismiss()
+        self.store.delete('UserInfo')
+        self.screen_manager.transition=NoTransition()
+        self.screen_manager.current = 'login_screen'
+    ####################################################
+    
+    
+    
+    
+    ###################################################
+    #                                                 #      
+    #              DATABASE METHODS                   #  
+    #                                                 #
+    ###################################################
+    def login_account(self):
+        """
+        Validate username and password from user input. If the value of login_complete
+        is true, generate a Login Success dialogbox, otherwise, prompt that username and password 
+        not found.
+        """
+        
+        input_username = self.ids.log_username.text.strip()
+        input_password = self.ids.log_password.pass_text.text.strip()
+        
+        login_complete = self.check_user(input_username,input_password)
+        if login_complete: 
+            self.display_dialog("Login Success!")
+            self.screen_manager.current = "dashboard_screen" 
+            self.screen_manager.transition.direction = "up" 
+        else:
+            self.display_dialog("Username & password not found")
+        
+    def register_account(self,app):
+        """
+        Validate registration fields using input_validate function. If the value of reg_complete
+        is true, generate a Registration Success dialogbox, otherwise, prompt that an error message.
+        """
+        
+        if self.input_validate():
+            reg_complete = self.add_user() #insert record to database
+            if reg_complete: 
+                self.display_dialog("", True)
+            else:
+                self.display_dialog("Error inserting records")
     
     def add_user(self):
         """
@@ -175,99 +451,6 @@ class MainLayout(BoxLayout):
             self.dbconn.close()
             return True
     
-    def dismiss_dialog(self,*args):
-        """
-        Function to close/dismiss the current dialogbox
-        """
-        
-        if self.dialogbox: #requires to have an existing dialogbox open
-            self.dialogbox.dismiss()
-    
-    def reg_success_ok_button(self,*args):
-        """
-        A dismiss_dialog() copy, specific to registration success dialog box.
-        Dismiss the dialog box and return to login screen after pressing the
-        'Return to Login' button
-        """
-        
-        if self.dialogbox: #requires to have an existing dialogbox open
-            self.dismiss_dialog()
-            self.screen_manager.current = "login_screen" 
-            self.screen_manager.transition.direction = "right"     
-           
-    def input_validate(self):
-        """
-        Validate user input in registration screen. Returns True if all validations are passed.
-        
-            Returns:
-                True/False(bool): 
-        """
-        
-        #strip removes any extra spaces
-        username    = self.ids.username.text.strip()  
-        firstname   = self.ids.firstname.text.strip()  
-        lastname    = self.ids.lastname.text.strip()  
-        email       = self.ids.email.text.strip()  
-        password    = self.ids.password.pass_text.text.strip()
-        cbTerms     = self.ids.checkBox.active
-        
-        #check if any one of the fields is empty
-        if not username or not firstname or not lastname or not email or not password: 
-            self.display_dialog("Please fill up all required fields") 
-            return False    
-        #check if checkbox is not checked   
-        elif not cbTerms:
-            self.display_dialog("You must agree to terms and condition")
-            return False
-        else:
-            return True   
-            
-    def password_encode(self,password_string):
-        """
-        Encode password into b64 encryption for database storage.
-        
-            Returns:
-                password(string): encoded password in b64encoding 
-        """
-        
-        ascii_pass  = password_string.encode("ascii")
-        b64_pass    = base64.b64encode(ascii_pass)
-        return b64_pass.decode("ascii")
-    
-    def password_decode(self,password_string):
-        """
-        Decode password into b64 decryption for password viewing(not in use in this app).
-        
-            Returns:
-                password(string): decoded password
-        """
-        
-        ascii_pass  = password_string.encode("ascii")
-        b64_pass    = base64.b64decode(ascii_pass)
-        return b64_pass.decode("ascii")
-    
-    def clear_registration(self):
-        """
-        Clear input fields in registration screen.
-        """
-        self.ids.username.text  = ''
-        self.ids.firstname.text = ''
-        self.ids.lastname.text  = ''
-        self.ids.email.text     = ''
-        self.ids.password.pass_text.text = ''
-        self.ids.checkBox.active = False
-    
-    def image_click(self):
-        print('click image')    
-    
-    def return_to_dashboard(self):
-        """
-        Return function to dashboard
-        """
-        self.bottom_navigation.switch_tab('screen 1') #automatically switch
-        self.screen_manager.current = 'dashboard_screen'
-        self.screen_manager.transition.direction = "right"
-        
     def load_posts(self,widget_type = None):
         """
         Load all Posts record created by the logged-in user. Receives widget_type that is either null 
@@ -310,13 +493,10 @@ class MainLayout(BoxLayout):
                                     tertiary_text=post[3],
                                     on_touch_down=self.view_post
                                     ))
-    
-                
-            
         self.dbconn.commit()
         self.dbconn.close()
-        
-    def post_record(self,app):
+    
+    def insert_post(self,app):
         """
         Post a record to database. Then return to dashboard screen with
         toast.
@@ -364,57 +544,31 @@ class MainLayout(BoxLayout):
         else:
             self.display_dialog(post_status["remarks"]) #display the remarks message in post_validate() status return
     
-    def post_validate(self,title,body):
+    def load_selected_post(self):
         """
-        Validate user input in post screen. Return a python dictionary
-        with key value pair for post_record conditioning
+        Load selected post. This function is called by on_enter: root.load_selected_post() in .kv file 
+        Assign the title and body to MDLabels for viewing
+        """
         
-            Returns:
-                status (dictionary): consist of success key and remarks key
-        """
-        status = {"success": False, "remarks": ""}
+        self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        dbcursor = self.dbconn.cursor()
+        post_id = self.ids.viewpost_screen.rec_id
+        print('load selected ' + str(post_id))
         
-        if not title: 
-            status["remarks"] = "Title field is required" 
-            return status    
-        if not body: 
-            status["remarks"] = "Body field is required"
-            return status  
-
-        status["success"] = True
-        return status
-      
-    def datetime_difference(self,from_date):
-        """
-        Returns the number of date or time passed since the date of posting
-            Returns:
-                difference (str): difference of date posted vs today in minutes/hours/days or months
-        """
-        #Removes the stored decimal in created_at field
-        decimal_index = from_date.find('.')
-        if decimal_index != -1:
-            from_date = from_date[:decimal_index]
-        
-        now = datetime.now()
-        try:
-            record_date = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
-        except:
-            print(f'error from date {from_date}')
-            
-        diff = now - record_date
-        if diff < timedelta(minutes=60):
-            return f"{int(diff.seconds / 60)}m"
-        elif diff < timedelta(days=1):
-            return f"{int(diff.seconds / 3600)}h"
-        elif diff < timedelta(days=30):
-            return f"{diff.days}d"
+        #user_code = self.store.get('UserInfo')['code'] 
+        sql_query = """SELECT title, body FROM trnpost WHERE code = :post_id """
+        parameter = {'post_id': post_id}
+        dbcursor.execute(sql_query,parameter)
+        records = dbcursor.fetchall()
+        if not records: #if no record exist
+            print("No record created")
         else:
-            return f"{int(diff.days / 30)}mo"
-    
-    def view_post(self,instance,touch):
-        if instance.collide_point(*touch.pos):
-            print(f"Item {instance.rec_id} pressed")
-            
+            self.ids.title_post.text = ''
+            self.ids.body_post.text = ''   
+            for post in records:
+                self.ids.title_post.text = post[0]
+                self.ids.body_post.text = post[1]   
+    ##################################################         
 class CustomPasswordField(MDRelativeLayout):
     text      = StringProperty()
     hint_text = StringProperty()
@@ -456,7 +610,7 @@ class SwipeToDeleteItem(MDCardSwipe):
             
     def delete_record(self,record_id):
         """
-        Remove the actual record in the database
+        Remove the actual record in the database base from record_id parameter
         """
         self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         dbcursor = self.dbconn.cursor()
@@ -472,7 +626,26 @@ class SwipeToDeleteItem(MDCardSwipe):
             #print("Commit " + dbcursor.rowcount 
         self.dbconn.commit()
         self.dbconn.close()
-        
+
+
+class ViewPostScreen(Screen):
+    post_id = None
+    caller_screen = None
+    rec_id = NumericProperty()
+    def assign_post_id(self,param_post_id,screen_name):
+        """
+        Called by view_post method in MainLayout Class to receive post_id 
+        when viewing post
+            Arguments:
+                param_post_id(int): post id to view
+                screen_name(str)  : fall back screen when closing the view post screen
+        """
+        self.post_id = param_post_id
+        self.caller_screen = screen_name
+        self.rec_id = param_post_id
+         
+    
+    
 class mdScrollViewApp(MDApp):
 
     def build(self):

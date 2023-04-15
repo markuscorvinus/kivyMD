@@ -365,7 +365,7 @@
                 size: root.size
                 MDTopAppBar:
                     id: top_nav
-                    right_action_items: [["dots-vertical"]]
+                    right_action_items: [["dots-vertical",lambda x: root.open_logout_menu(x)]]
                 
                 MDBottomNavigation:
                     id: bottom_nav
@@ -374,10 +374,13 @@
                     text_color_active: app.theme_cls.primary_dark
                     text_color_normal: 1,1,1,1
                     use_text: False
+                    on_switch_tabs: root.assign_active_tab(*args)
                     
                     MDBottomNavigationItem:
                         name: 'screen 1'
                         icon: 'home-outline'
+                        on_tab_press: 
+                            top_nav.title = "MDCards"
                         #badge_icon: "numeric-10"
                         
                         ScrollView:
@@ -463,14 +466,25 @@
                     MDBottomNavigationItem:
                         name: 'screen 2'
                         icon: 'magnify'
-                        #badge_icon: "numeric-10"
-                        
-                        MDLabel:
-                            text: 'Welcome to KivyMD- SECTION 2'
-                            halign: 'center'
-                            font_size: '55sp'
-                            theme_text_color: "Custom"
-                            text_color: app.theme_cls.primary_color
+                        on_tab_press: 
+                            root.get_default_date()
+                            top_nav.title = "Date Picker sample"
+
+                        MDTextField:
+                            id: default_date
+                            text: ''
+                            font_size: '24sp'
+                            validator: 'date'
+                            date_format: "mm/dd/yyyy"
+                            on_focus: root.date_open()
+                            pos_hint:  {'center_x': 0.5,'center_y': 0.6}
+                            size_hint_x: 0.7 
+
+                        # MDRaisedButton:
+                        #     text: 'Date Select'
+                        #     font_size: '24sp'
+                        #     on_press: root.date_open()
+                        #     pos_hint:  {'center_x': 0.5,'center_y': 0.5}
 
                     MDBottomNavigationItem:
                         name: 'screen 3'
@@ -478,6 +492,7 @@
                         on_tab_press: 
                             screen_manager1.current = "post_screen"
                             screen_manager1.transition.direction = "left"
+
                         #badge_icon: "numeric-10"
                         
                         MDLabel:
@@ -524,7 +539,7 @@
                         icon: 'bell-outline'
                         on_tab_press: 
                             root.load_posts('swipe')
-                            top_nav.title = "My Postings"
+                            top_nav.title = "My Postings(Try swiping)"
                         #badge_icon: "numeric-10"
                         
                         ScrollView:
@@ -544,8 +559,8 @@
                 orientation: "vertical"
                 size: root.size
                 MDTopAppBar:
-                    left_action_items: [["close", lambda x: root.return_to_dashboard()]]
-                    right_action_items: [["send", lambda x: root.post_record(app)]]
+                    left_action_items: [["close", lambda x: root.return_to_dashboard('screen 1')]]
+                    right_action_items: [["send", lambda x: root.insert_post(app)]]
                 FloatLayout:
                     MDTextField:
                         id: p_title
@@ -563,10 +578,35 @@
                         font_size: '16sp'
                         size_hint_x: 0.9 
                         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-        Screen:
+        ViewPostScreen: #A custom screen with custom input receiver
             id:viewpost_screen
+            rec_id: self.rec_id
             name: 'viewpost_screen'
+            on_enter: root.load_selected_post()
             MDBoxLayout:
                 orientation: "vertical"
                 size: root.size
-    
+                MDTopAppBar:
+                    left_action_items: [["close", lambda x: root.return_to_dashboard('screen 4')]]
+                    right_action_items: [["note-edit-outline", lambda x: root.post_record(app)]]
+                ScrollView:
+                    do_scroll_y: True
+                    do_scroll_x: False
+                    GridLayout:
+                        cols: 1
+                        size_hint_y: None
+                        padding: ["12dp","12dp","12dp","25dp"]
+                        spacing: "10dp"
+                        MDLabel:
+                            id: title_post
+                            font_size: dp(24)
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                        MDLabel:
+                            id: body_post
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            font_size: dp(16)
+                            text: ''
+                            
+
