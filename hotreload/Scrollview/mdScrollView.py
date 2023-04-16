@@ -38,7 +38,8 @@ class MainLayout(BoxLayout):
     active_tab = StringProperty() #current active tab name
     menu        = None #Menu
     date_dialog = None
-    
+    has_focus   = False
+     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         """
@@ -246,9 +247,9 @@ class MainLayout(BoxLayout):
         if decimal_index != -1:
             from_date = from_date[:decimal_index]
         
-        now = datetime.now()
+        now = datefunct.now()
         try:
-            record_date = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
+            record_date = datefunct.strptime(from_date, "%Y-%m-%d %H:%M:%S")
         except:
             print(f'error from date {from_date}')
             
@@ -272,7 +273,7 @@ class MainLayout(BoxLayout):
                 instance(object) -- default parameter of on_touch_down event from mdlist
                 touch(object) -- default parameter of on_touch_down event from mdlist
         """
-        print(self.ids.bottom_nav.current)
+        
         if instance.collide_point(*touch.pos) and self.active_tab == 'screen 4':
             #using instance param, you may determine the property associated to the selected MDList.
             #In this example, using instance.rec_id will send the rec_id of the specific selected MDList
@@ -292,8 +293,7 @@ class MainLayout(BoxLayout):
         #     mode="picker",
         # )
         print("onfocus")
-        
-        if not self.date_dialog:
+        if not self.has_focus:
             self.date_dialog = MDDatePicker(
                 mode="picker",
                 min_date=datetime.date.today(),
@@ -305,11 +305,10 @@ class MainLayout(BoxLayout):
             )
             self.date_dialog.bind(on_save=self.assign_date) #Does not work if you try to initialize on_save on MDDatePicker, so you bind it separately
             self.date_dialog.open()  
+            self.has_focus = True
         else:
-            self.date_dialog.dismiss()  
-            self.date_dialog = None     
+            self.has_focus = False
             
-              
     def get_default_date(self):
         """
         Get the current date and assign it to default_date MDTextInput
@@ -408,8 +407,8 @@ class MainLayout(BoxLayout):
                 'var_lastname'  : self.ids.lastname.text.strip(),
                 'var_email'     : self.ids.email.text.strip(),
                 'var_password'  : self.password_encode(self.ids.password.pass_text.text.strip()),
-                'var_created_at': datetime.datetime.now(),
-                'var_updated_at': datetime.datetime.now(),
+                'var_created_at': datetime.now(),
+                'var_updated_at': datetime.now(),
 			}
         dbcursor.execute("INSERT INTO mstuser (username,first_name,last_name,email,password,created_at,updated_at) VALUES (:var_username,:var_firstname,:var_lastname,:var_email,:var_password,:var_created_at,:var_updated_at)",database_params)
         #check if NO RECORD is created, return False(ERROR)
@@ -441,7 +440,7 @@ class MainLayout(BoxLayout):
             return False
         else:
             for user in records:
-                print(f"Username:{user[1]}\nFirstName:{user[2]}\nLastName:{user[3]}")
+                
                 """
                 Save login user code, firstname,lastname and username to a json file
                 """
@@ -515,8 +514,8 @@ class MainLayout(BoxLayout):
                     'var_body' : body,
                     'var_created_by': self.store.get('UserInfo')['firstname']+ " " +self.store.get('UserInfo')['lastname'],
                     'var_updated_by': self.store.get('UserInfo')['firstname']+ " " +self.store.get('UserInfo')['lastname'],
-                    'var_created_at': datetime.datetime.now(),
-                    'var_updated_at': datetime.datetime.now(),
+                    'var_created_at': datetime.now(),
+                    'var_updated_at': datetime.now(),
                 }
             dbcursor.execute("INSERT INTO trnpost (user_mst_code,title,body,created_by,updated_by,created_at,updated_at) VALUES (:var_user_code,:var_title,:var_body,:var_created_by,:var_updated_by,:var_created_at,:var_updated_at)",database_params)
             #check if NO RECORD is created, return False(ERROR)
@@ -553,10 +552,10 @@ class MainLayout(BoxLayout):
         self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         dbcursor = self.dbconn.cursor()
         post_id = self.ids.viewpost_screen.rec_id
-        print('load selected ' + str(post_id))
+        
         
         #user_code = self.store.get('UserInfo')['code'] 
-        sql_query = """SELECT title, body FROM trnpost WHERE code = :post_id """
+        sql_query = """SELECT title, body,created_by,created_at FROM trnpost WHERE code = :post_id """
         parameter = {'post_id': post_id}
         dbcursor.execute(sql_query,parameter)
         records = dbcursor.fetchall()
@@ -567,8 +566,10 @@ class MainLayout(BoxLayout):
             self.ids.body_post.text = ''   
             for post in records:
                 self.ids.title_post.text = post[0]
-                self.ids.body_post.text = post[1]   
-    ##################################################         
+                self.ids.body_post.text = post[1]  
+                self.ids.postby_post.text = f'Posted by {post[2]} · {self.datetime_difference(post[3])}'   
+    ####################################################       
+      
 class CustomPasswordField(MDRelativeLayout):
     text      = StringProperty()
     hint_text = StringProperty()

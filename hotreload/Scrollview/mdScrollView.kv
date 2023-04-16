@@ -595,11 +595,22 @@
                     GridLayout:
                         cols: 1
                         size_hint_y: None
-                        padding: ["12dp","12dp","12dp","25dp"]
+                        padding: ["15dp","15dp","15dp","25dp"]
                         spacing: "10dp"
+                        
                         MDLabel:
                             id: title_post
                             font_size: dp(24)
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                        MDLabel:
+                            id: postby_post
+                            font_size: dp(12)
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                        MDLabel:
+                            text: ''
+                            font_size: dp(12)
                             size_hint_y: None
                             height: self.texture_size[1]
                         MDLabel:
