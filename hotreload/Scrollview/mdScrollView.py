@@ -242,14 +242,15 @@ class MainLayout(BoxLayout):
             Returns:
                 difference (str): difference of date posted vs today in minutes/hours/days or months
         """
-        #Removes the stored decimal in created_at field
+        ###Removes the stored decimal in created_at field
         decimal_index = from_date.find('.')
         if decimal_index != -1:
             from_date = from_date[:decimal_index]
+        ###Removes the stored decimal in created_at field
         
-        now = datefunct.now()
+        now = datetime.now()
         try:
-            record_date = datefunct.strptime(from_date, "%Y-%m-%d %H:%M:%S")
+            record_date = datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
         except:
             print(f'error from date {from_date}')
             
@@ -471,11 +472,12 @@ class MainLayout(BoxLayout):
             
         records = dbcursor.fetchall()
         if not records: #if no record exist
-            print("No record created")
+            print("No record exist")
         else:
             self.ids.screen4_boxlayout.clear_widgets()
             self.ids.screen5_boxlayout.clear_widgets()
             for post in records:
+                 
                 if widget_type == "swipe":
                     #Display a Swipe to delete List with rec_id(primary of post record),Post title, user and date posted, and post content
                     self.ids.screen5_boxlayout.add_widget(SwipeToDeleteItem(rec_id=post[0],
@@ -492,6 +494,9 @@ class MainLayout(BoxLayout):
                                     tertiary_text=post[3],
                                     on_touch_down=self.view_post
                                     ))
+                    
+                    
+                    
         self.dbconn.commit()
         self.dbconn.close()
     

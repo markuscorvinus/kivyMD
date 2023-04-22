@@ -1,0 +1,7 @@
+code,username,first_name,last_name,middle_name,email,password,created_at,updated_at
+1,test1,Marco,Polo,,test1@gmail.com,dGVzdDEyMw==,2023-03-24 15:58:29.502995,2023-03-24 15:58:29.502995
+2,dsada,dsadsa,dasda,,dsada,ZHNhZGE=,2023-03-25 15:16:49.362941,2023-03-25 15:16:49.362941
+3,jdoe,John,Doe,,jdoe@test.com,amRvZTE5MTk=,2023-03-28 15:16:49.362941,2023-03-28 15:16:49.362941
+4,ndiaz,Nikko,Diaz,,ndiaz@test.com,Km5kaWF6NTU1,2023-04-01 15:16:49.362941,2023-04-01 15:16:49.362941
+5,klawson,Kelsey,Lawson,,klawson@test.com,NktsYXdzb242,2023-04-08 14:25:49.362941,2023-04-08 14:25:49.362941
+6,xmeyer,Xavier,Meyer,,xmeyer@test.com,WDR2MWVSOTg=,2023-04-08 14:25:49.362941,2023-04-08 14:25:49.362941
