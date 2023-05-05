@@ -3,6 +3,7 @@ from datetime import datetime, timedelta #FOR date saving of current date
 
 import base64       #FOR password encoding
 import sqlite3      #FOR sqlite3 connection
+#import mysql.connector #FOR mysql connection
 
 from kivymd.app           import MDApp
 from kivy.lang            import Builder
@@ -456,7 +457,14 @@ class MainLayout(BoxLayout):
         Load all Posts record created by the logged-in user. Receives widget_type that is either null 
         or default to "swipe" for swipe cards
         """
+        
         self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        # self.dbconn = mysql.connector.connect(
+		# 	host = "database-1.csfcckck2rja.us-east-1.rds.amazonaws.com", 
+		# 	user = "admin",
+		# 	passwd = "DENe6Yhqny5SLxS7zc1h",
+		# 	database = "ITPE02",
+		# 	)
         dbcursor = self.dbconn.cursor()
         
         

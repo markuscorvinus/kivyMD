@@ -16,13 +16,13 @@ class MainApp(App,MDApp):
     DEBUG = True
     
     KV_FILES = {
-        #os.path.join('.', 'mdScrollView.kv')
-        os.path.join('.', '_dashboard.kv')
+        os.path.join('.', 'mdScrollView.kv')
+        #os.path.join('.', '_dashboard.kv')
     }
 
     CLASSES = {
-        #"MainLayout": "mdScrollView"
-        "MainLayout": "_dashboard"
+        "MainLayout": "mdScrollView"
+        #"MainLayout": "_dashboard"
     }
 
     AUTORELOADER_PATHS = [('.', {"recursive": True})]

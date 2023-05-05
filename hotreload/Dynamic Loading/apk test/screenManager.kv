@@ -1,0 +1,22 @@
+#:import Snackbar kivymd.uix.snackbar.Snackbar
+#:import Window kivy.core.window.Window
+
+
+<MainLayout>:   
+    MDBoxLayout:
+        orientation: "vertical"
+        size: root.size
+        
+        
+        MDLabel:
+            text: "test"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            
+        MDRectangleFlatButton:
+            text: "test"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            on_press: root.btnfunc()
+        
+        MDLabel:
+            text: "test"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
