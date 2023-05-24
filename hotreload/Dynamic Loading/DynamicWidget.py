@@ -1,11 +1,11 @@
 import os, sys
-
-
-import sqlite3
-#import mysql.connector #FOR mysql connection
-from datetime import datetime
+#import sqlite3
 import base64
 import io
+
+import mysql.connector #FOR mysql connection
+from datetime import datetime
+
 
 
 from kivy.config            import Config
@@ -15,16 +15,12 @@ from kivy.config            import Config
 #Config.write()
 from kivymd.app             import MDApp
 
-from kivy.uix.widget        import Widget
-from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.floatlayout   import FloatLayout
-from kivy.uix.image         import Image
 from kivy.properties        import ObjectProperty,StringProperty,NumericProperty
-from kivy.resources         import resource_add_path, resource_find
+from kivy.resources         import resource_add_path
 from kivy.metrics           import dp
 from kivy.core.window       import Window
 from kivy.core.image        import Image as ImageConvert
-from kivy.lang              import Builder
 from kivy.clock             import mainthread
 
 
@@ -45,21 +41,17 @@ class MainLayout(FloatLayout):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.ids.bottom_nav.switch_tab("screen 3")
         #self.load_cards()
     
-    @mainthread
-    def on_kv_post(self, base_widget):
-        self.load_cards()
-        #return super().on_kv_post(base_widget)    
-    
     def load_cards(self):
-        self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-        # self.dbconn = mysql.connector.connect(
-		# 	host ="database-1.csfcckck2rja.us-east-1.rds.amazonaws.com", 
-		# 	user = "admin",
-		# 	passwd = "DENe6Yhqny5SLxS7zc1h",
-		# 	database = "ITPE02",
-		# 	)
+        #self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        self.dbconn = mysql.connector.connect(
+			host ="database-1.csfcckck2rja.us-east-1.rds.amazonaws.com", 
+			user = "admin",
+			passwd = "DENe6Yhqny5SLxS7zc1h",
+			database = "ITPE02",
+			)
         
         dbcursor = self.dbconn.cursor()
         
@@ -124,13 +116,13 @@ class MainLayout(FloatLayout):
         
         
     def insert_image(self):
-        self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-        # self.dbconn = mysql.connector.connect(
-		# 	host ="database-1.csfcckck2rja.us-east-1.rds.amazonaws.com", 
-		# 	user = "admin",
-		# 	passwd = "DENe6Yhqny5SLxS7zc1h",
-		# 	database = "ITPE02",
-		# 	)
+        #self.dbconn = sqlite3.connect('kivysql.db',detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        self.dbconn = mysql.connector.connect(
+			host ="database-1.csfcckck2rja.us-east-1.rds.amazonaws.com", 
+			user = "admin",
+			passwd = "DENe6Yhqny5SLxS7zc1h",
+			database = "ITPE02",
+			)
          
         dbcursor = self.dbconn.cursor()
         
@@ -172,6 +164,7 @@ class MainLayout(FloatLayout):
     def blobToImage(self,blobdata):
         with open(blobdata, 'wb') as file:
             file.write(data)
+        
         
 class CustomCard(MDCard):
     id      = StringProperty(None)

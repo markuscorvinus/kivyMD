@@ -1,17 +1,12 @@
 import os, sys
 from kivymd.app import MDApp
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ObjectProperty,StringProperty,NumericProperty
-from kivy.resources import resource_add_path, resource_find
-from kivymd.uix.snackbar import MDSnackbar
-from kivy.lang import Builder
+from kivy.resources import resource_add_path
 
 #Builder.load_file('test.kv')
 #Define our different screens
     
 class MainLayout(FloatLayout):
-    screen_mngr = ObjectProperty(None)
-    
     def btnfunc(self):
         print("button is pressed!!")
 

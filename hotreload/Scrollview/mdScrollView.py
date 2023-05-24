@@ -539,9 +539,9 @@ class MainLayout(BoxLayout):
                 #print("Commit " + dbcursor.rowcount )
                 self.dbconn.commit()
                 self.dbconn.close()
-                self.screen_manager.current = 'dashboard_screen'
+                self.screen_manager.current = 'post_screen'
                 self.screen_manager.transition.direction = "right" 
-                self.bottom_navigation.switch_tab('screen 1') 
+                #self.bottom_navigation.switch_tab('screen 1') 
                 
                 #Snackbar - create popup message after successful posting
                 Snackbar(
